@@ -1,22 +1,60 @@
-name: Run Model AI
+model:
+  name: "CustomAIModel"
+  type: "NeuralNetwork"
+  architecture: "ResNet50"
+  input_shape: [224, 224, 3]
+  num_classes: 10
+  pretrained: true
+  optimizer:
+    type: "Adam"
+    learning_rate: 0.001
+    weight_decay: 0.0001
+  loss_function: "CrossEntropyLoss"
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
 
-on: [push, pull_request]
+data:
+  dataset_name: "CustomDataset"
+  batch_size: 32
+  shuffle: true
+  num_workers: 4
+  augmentation:
+    horizontal_flip: true
+    rotation_range: 10
+    brightness_range: [0.8, 1.2]
 
-jobs:
-  run-model:
-    runs-on: ubuntu-latest
+training:
+  epochs: 50
+  save_model: true
+  checkpoint_dir: "./checkpoints"
+  log_dir: "./logs"
+  early_stopping:
+    enabled: true
+    patience: 5
+  lr_scheduler:
+    enabled: true
+    type: "StepLR"
+    step_size: 10
+    gamma: 0.1
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+hardware:
+  use_gpu: true
+  device: "cuda"
+  num_gpus: 1
+  mixed_precision: true
 
-      - name: Set Up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
+logging:
+  level: "INFO"
+  save_logs: true
+  log_format: "%(asctime)s - %(levelname)s - %(message)s"
+  log_file: "./logs/training.log"
 
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run Model
-        run: python model_ai.py
+output:
+  save_predictions: true
+  output_dir: "./outputs"
+  visualization:
+    enabled: true
+    plot_confusion_matrix: true
+    plot_loss_curve: true
